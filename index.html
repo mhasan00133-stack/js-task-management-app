@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript Task Management Application — Muhammad Hasan Sajid (SEP26-FE21-44)</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+/* ==========================================================================
+   JAVASCRIPT TASK MANAGEMENT APPLICATION — STYLESHEET (css/style.css)
+   Intern: Muhammad Hasan Sajid | Reg No: SEP26-FE21-44
+   ========================================================================== */
+:root {
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --text-main: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --border: #e2e8f0;
+  --radius: 10px;
+  --shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', 'Noto Sans', system-ui, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.45;
+}
+.app-shell { max-width: 1160px; margin: 0 auto; padding: 16px 24px; }
+.topbar {
+  background: #0f172a;
+  color: #fff;
+  padding: 16px 22px;
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.topbar__title { font-size: 1.3rem; font-weight: 800; }
+.topbar__meta { font-size: 0.8rem; color: #cbd5e1; margin-top: 3px; }
+.stats-row { display: flex; gap: 10px; }
+.stat-pill {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+}
+.stat-pill strong { color: #60a5fa; font-size: 0.9rem; }
+
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+}
+.task-form {
+  display: grid;
+  grid-template-columns: 1.5fr 1.8fr 0.8fr 0.8fr 0.9fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.input, .select {
+  padding: 8px 11px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  outline: none;
+  background: #fff;
+}
+.input:focus, .select:focus { border-color: var(--brand); }
+.btn {
+  padding: 8px 14px;
+  border-radius: 7px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn--primary { background: var(--brand); color: #fff; }
+.btn--secondary { background: #f1f5f9; color: #1e293b; border-color: #cbd5e1; }
+.btn--accent { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.controls-bar {
+  display: grid;
+  grid-template-columns: 1.8fr 0.9fr 0.9fr 1fr auto auto auto;
+  gap: 8px;
+  align-items: center;
+}
+.status-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+}
+.code-pill {
+  font-family: monospace;
+  background: #0f172a;
+  color: #38bdf8;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+.kbd-bar { display: flex; gap: 10px; font-size: 0.75rem; color: var(--text-muted); }
+kbd {
+  background: #fff;
+  border: 1px solid #94a3b8;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: monospace;
+  font-size: 0.72rem;
+  color: #0f172a;
+}
+
+.task-list { display: flex; flex-direction: column; gap: 9px; }
+.task-card {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 11px 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.task-card--done { background: #f8fafc; opacity: 0.82; }
+.task-card--done .task-title { text-decoration: line-through; color: var(--text-muted); }
+.task-card.dragging { opacity: 0.45; border: 1.5px dashed var(--brand); }
+.task-card.drag-over { border-color: var(--brand); background: #eff6ff; transform: scale(1.005); }
+.task-card__drag { cursor: grab; color: var(--text-muted); font-weight: 800; font-size: 1.1rem; user-select: none; }
+.task-card__check { width: 17px; height: 17px; cursor: pointer; accent-color: var(--brand); }
+.task-card__body { flex: 1; }
+.task-card__top { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.task-id { font-family: monospace; font-size: 0.74rem; color: var(--text-muted); background: #f1f5f9; padding: 1px 6px; border-radius: 4px; }
+.task-title { font-size: 0.94rem; font-weight: 700; color: var(--text-main); }
+.task-desc { font-size: 0.81rem; color: var(--text-secondary); margin-bottom: 5px; }
+.task-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); }
+.task-tags { display: flex; gap: 6px; }
+.tag { background: #f1f5f9; color: #334155; padding: 1px 7px; border-radius: 4px; font-family: monospace; font-size: 0.72rem; }
+
+.badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; text-transform: uppercase; }
+.badge--priority-high { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.badge--priority-medium { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.badge--priority-low { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.badge--status-completed { background: #dcfce7; color: #15803d; }
+.badge--status-in-progress { background: #dbeafe; color: #1d4ed8; }
+.badge--status-todo { background: #f1f5f9; color: #475569; }
+
+mark.search-highlight {
+  background: #fef08a;
+  color: #854d0e;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+.task-card__actions { display: flex; gap: 6px; }
+.btn-icon {
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #f8fafc;
+  cursor: pointer;
+}
+.btn-icon--danger { color: #dc2626; border-color: #fecaca; background: #fff1f2; }
+.empty-state { text-align: center; padding: 28px; color: var(--text-muted); background: #fff; border: 1.5px dashed #cbd5e1; border-radius: var(--radius); }
+
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1 class="topbar__title">JavaScript Task Management Application</h1>
+        <div class="topbar__meta">
+          Intern: <strong>Muhammad Hasan Sajid</strong> &nbsp;|&nbsp;
+          Reg / Roll No: <strong>SEP26-FE21-44</strong> &nbsp;|&nbsp;
+          Phase 1: Web Foundations &amp; ES6 Modules (No Frameworks)
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-pill">Total: <strong id="stat-total">5</strong></div>
+        <div class="stat-pill">Completed: <strong id="stat-done">1</strong></div>
+        <div class="stat-pill">Pending: <strong id="stat-pending">4</strong></div>
+      </div>
+    </header>
+
+    <!-- Full CRUD Task Creation / Inline Edit Form -->
+    <section class="panel">
+      <form id="task-form" class="task-form">
+        <input id="task-title" class="input" type="text" placeholder="Task title (Press Alt+N to focus)..." required>
+        <input id="task-desc" class="input" type="text" placeholder="Task description & technical notes...">
+        <select id="task-priority" class="select">
+          <option value="high">High Priority</option>
+          <option value="medium" selected>Medium Priority</option>
+          <option value="low">Low Priority</option>
+        </select>
+        <select id="task-status" class="select">
+          <option value="todo">Todo</option>
+          <option value="in-progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+        <input id="task-due" class="input" type="date" value="2026-10-30">
+        <button id="task-submit-btn" class="btn btn--primary" type="submit">+ Add Task (Alt+N)</button>
+      </form>
+    </section>
+
+    <!-- Debounced Search, Persistent URL Filters, Sort & 20-Action Command Undo/Redo -->
+    <section class="panel">
+      <div class="controls-bar">
+        <input id="search-input" class="input" type="text" placeholder="Debounced search (250ms) with <mark> highlight (Press / to focus)...">
+        <select id="filter-status" class="select">
+          <option value="all">Status: All</option>
+          <option value="todo">Status: Todo</option>
+          <option value="in-progress">Status: In Progress</option>
+          <option value="completed">Status: Completed</option>
+        </select>
+        <select id="filter-priority" class="select">
+          <option value="all">Priority: All</option>
+          <option value="high">Priority: High</option>
+          <option value="medium">Priority: Medium</option>
+          <option value="low">Priority: Low</option>
+        </select>
+        <select id="sort-by" class="select">
+          <option value="custom">Sort: Drag Order (Custom)</option>
+          <option value="priority-desc">Sort: Priority (High → Low)</option>
+          <option value="dueDate-asc">Sort: Due Date (Earliest)</option>
+          <option value="createdAt-desc">Sort: Newest First</option>
+        </select>
+        <button id="undo-btn" class="btn btn--secondary" type="button" disabled>↶ Undo (0/20)</button>
+        <button id="redo-btn" class="btn btn--secondary" type="button" disabled>↷ Redo (0)</button>
+        <button id="migrate-test-btn" class="btn btn--accent" type="button">Test v1→v2 Migration</button>
+      </div>
+    </section>
+
+    <div class="status-strip">
+      <div>
+        <strong>URL State:</strong> <span id="url-query-badge" class="code-pill">?status=all&amp;priority=all&amp;sort=custom</span>
+        &nbsp;|&nbsp; <span id="schema-log">Schema v2 Active (localStorage)</span>
+      </div>
+      <div class="kbd-bar">
+        <span><kbd>Ctrl+Z</kbd> Undo</span>
+        <span><kbd>Ctrl+Y</kbd> Redo</span>
+        <span><kbd>Alt+N</kbd> New</span>
+        <span><kbd>/</kbd> Search</span>
+        <span><kbd>Esc</kbd> Clear</span>
+      </div>
+    </div>
+
+    <main id="task-list" class="task-list"></main>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+<!-- BUNDLED_FALLBACK -->
+
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      setTimeout(function () {
+        var listEl = document.getElementById('task-list');
+        if (listEl && listEl.children.length === 0) {
+          (function() {
+// ============================================================================
+// MODULE 1: js/storage.js — localStorage Persistence & Schema Migration (v1 -> v2)
+// Project: JavaScript Task Management Application | Intern: Muhammad Hasan Sajid (SEP26-FE21-44)
+// ============================================================================
+
+const STORAGE_KEY = 'appverse_task_manager_data';
+const CURRENT_SCHEMA_VERSION = 2;
+
+const SEED_TASKS = [
+  { id: 'TSK-101', title: 'Architect ES6 Module Structure & Storage Engine', description: 'Decouple CRUD, Command stack, URL state, and Drag-and-Drop modules.', status: 'completed', priority: 'high', dueDate: '2026-10-25', order: 0, tags: ['architecture', 'es6'], createdAt: '2026-10-22T09:00:00Z' },
+  { id: 'TSK-102', title: 'Implement 20-Action Command Pattern Undo/Redo Stack', description: 'Create execute() and undo() methods for Create, Update, Delete, Toggle, and Reorder.', status: 'in-progress', priority: 'high', dueDate: '2026-10-26', order: 1, tags: ['command-pattern', 'state'], createdAt: '2026-10-23T11:30:00Z' },
+  { id: 'TSK-103', title: 'Build HTML5 Drag and Drop Task Reordering', description: 'Bind dragstart, dragover, drop, and dragend events with visual drop indicators.', status: 'in-progress', priority: 'medium', dueDate: '2026-10-27', order: 2, tags: ['html5-dnd', 'ui'], createdAt: '2026-10-24T14:15:00Z' },
+  { id: 'TSK-104', title: 'Configure URLSearchParams Filter & Sort Persistence', description: 'Sync status, priority, sort order, and search query directly with browser URL parameters.', status: 'todo', priority: 'high', dueDate: '2026-10-28', order: 3, tags: ['url-state', 'routing'], createdAt: '2026-10-25T10:00:00Z' },
+  { id: 'TSK-105', title: 'Add Debounced Search with <mark> Match Highlighting', description: 'Debounce input at 250ms and highlight matching keywords safely across task cards.', status: 'todo', priority: 'medium', dueDate: '2026-10-29', order: 4, tags: ['search', 'debounce'], createdAt: '2026-10-26T08:00:00Z' }
+];
+
+/**
+ * Migrates legacy v1 schema records (e.g. { text, done }) to Schema v2.
+ */
+function migrateSchemaV1ToV2(rawPayload) {
+  const rawTasks = Array.isArray(rawPayload) ? rawPayload : (rawPayload.tasks || []);
+  const migratedTasks = rawTasks.map((item, idx) => ({
+    id: item.id || `TSK-${100 + idx + 1}`,
+    title: item.title || item.text || 'Untitled Task',
+    description: item.description || item.notes || 'Migrated from Schema v1 to Schema v2.',
+    status: item.status || (item.done ? 'completed' : 'todo'),
+    priority: item.priority || 'medium',
+    dueDate: item.dueDate || '2026-10-30',
+    order: typeof item.order === 'number' ? item.order : idx,
+    tags: Array.isArray(item.tags) ? item.tags : ['migrated-v2'],
+    createdAt: item.createdAt || new Date().toISOString()
+  }));
+
+  return {
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    migratedAt: new Date().toISOString(),
+    tasks: migratedTasks
+  };
+}
+
+function loadTasksFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      const initial = { schemaVersion: CURRENT_SCHEMA_VERSION, updatedAt: new Date().toISOString(), tasks: SEED_TASKS };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+      return { tasks: [...SEED_TASKS], migrationLog: 'Initialized Schema v2 with 5 starter tasks.' };
+    }
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) || !parsed.schemaVersion || parsed.schemaVersion < CURRENT_SCHEMA_VERSION) {
+      const upgraded = migrateSchemaV1ToV2(parsed);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(upgraded));
+      return { tasks: upgraded.tasks, migrationLog: 'Auto-migrated legacy Schema v1 -> Schema v2.' };
+    }
+    return { tasks: parsed.tasks || [], migrationLog: `Loaded Schema v${parsed.schemaVersion} (${(parsed.tasks || []).length} tasks).` };
+  } catch (err) {
+    console.error('[Storage Error]:', err);
+    return { tasks: [...SEED_TASKS], migrationLog: 'Fallback to seed tasks after storage error.' };
+  }
+}
+
+function saveTasksToStorage(tasks) {
+  const payload = {
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    updatedAt: new Date().toISOString(),
+    tasks: tasks.map((t, idx) => ({ ...t, order: idx }))
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+// ============================================================================
+// MODULE 2: js/command.js — Command Pattern Undo/Redo (20-Action History Stack)
+// Project: JavaScript Task Management Application | Intern: Muhammad Hasan Sajid (SEP26-FE21-44)
+// ============================================================================
+
+const MAX_HISTORY = 20;
+
+class CommandManager {
+  constructor(onStackChange) {
+    this.undoStack = [];
+    this.redoStack = [];
+    this.onStackChange = onStackChange;
+  }
+
+  executeCommand(command) {
+    command.execute();
+    this.undoStack.push(command);
+    if (this.undoStack.length > MAX_HISTORY) {
+      this.undoStack.shift(); // Enforce strict 20-action cap
+    }
+    this.redoStack = [];
+    this.notify(command.label);
+  }
+
+  undo() {
+    if (!this.undoStack.length) return null;
+    const command = this.undoStack.pop();
+    command.undo();
+    this.redoStack.push(command);
+    this.notify(`Undid: ${command.label}`);
+    return command;
+  }
+
+  redo() {
+    if (!this.redoStack.length) return null;
+    const command = this.redoStack.pop();
+    command.execute();
+    this.undoStack.push(command);
+    this.notify(`Redid: ${command.label}`);
+    return command;
+  }
+
+  notify(lastActionLabel = '') {
+    if (this.onStackChange) {
+      this.onStackChange({
+        undoCount: this.undoStack.length,
+        redoCount: this.redoStack.length,
+        maxHistory: MAX_HISTORY,
+        lastActionLabel
+      });
+    }
+  }
+}
+
+class TaskMutationCommand {
+  constructor(label, stateRef, nextTasksSnapshot, commitFn) {
+    this.label = label;
+    this.stateRef = stateRef;
+    this.prevSnapshot = JSON.parse(JSON.stringify(stateRef.tasks));
+    this.nextSnapshot = JSON.parse(JSON.stringify(nextTasksSnapshot));
+    this.commitFn = commitFn;
+  }
+
+  execute() {
+    this.stateRef.tasks = JSON.parse(JSON.stringify(this.nextSnapshot));
+    this.commitFn();
+  }
+
+  undo() {
+    this.stateRef.tasks = JSON.parse(JSON.stringify(this.prevSnapshot));
+    this.commitFn();
+  }
+}
+// ============================================================================
+// MODULE 3: js/urlState.js — Filtering, Sorting & URL Parameter Persistence
+// Project: JavaScript Task Management Application | Intern: Muhammad Hasan Sajid (SEP26-FE21-44)
+// ============================================================================
+
+function readFiltersFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    status: params.get('status') || 'all',
+    priority: params.get('priority') || 'all',
+    sort: params.get('sort') || 'custom',
+    q: params.get('q') || ''
+  };
+}
+
+function syncFiltersToURL(filters) {
+  const params = new URLSearchParams();
+  params.set('status', filters.status || 'all');
+  params.set('priority', filters.priority || 'all');
+  params.set('sort', filters.sort || 'custom');
+  if (filters.q && filters.q.trim()) {
+    params.set('q', filters.q.trim());
+  }
+  const queryString = params.toString();
+  const newUrl = `${window.location.pathname}?${queryString}`;
+  try {
+    window.history.replaceState({ ...filters }, '', newUrl);
+  } catch (e) {
+    // Ignore history security restriction on file:// protocol
+  }
+  return `?${queryString}`;
+}
+
+const PRIORITY_WEIGHT = { high: 3, medium: 2, low: 1 };
+
+function applyFiltersAndSort(tasks, filters) {
+  const q = (filters.q || '').trim().toLowerCase();
+  const filtered = tasks.filter(task => {
+    if (filters.status !== 'all' && task.status !== filters.status) return false;
+    if (filters.priority !== 'all' && task.priority !== filters.priority) return false;
+    if (q) {
+      const hay = `${task.id} ${task.title} ${task.description} ${(task.tags || []).join(' ')}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  return filtered.sort((a, b) => {
+    if (filters.sort === 'priority-desc') {
+      return (PRIORITY_WEIGHT[b.priority] || 0) - (PRIORITY_WEIGHT[a.priority] || 0);
+    }
+    if (filters.sort === 'dueDate-asc') {
+      return String(a.dueDate).localeCompare(String(b.dueDate));
+    }
+    if (filters.sort === 'createdAt-desc') {
+      return String(b.createdAt).localeCompare(String(a.createdAt));
+    }
+    return (a.order || 0) - (b.order || 0);
+  });
+}
+// ============================================================================
+// MODULE 4: js/dnd.js — HTML5 Drag and Drop Task Reordering
+// Project: JavaScript Task Management Application | Intern: Muhammad Hasan Sajid (SEP26-FE21-44)
+// ============================================================================
+
+function bindDragAndDrop(containerEl, onReorderIds) {
+  let draggedId = null;
+
+  containerEl.addEventListener('dragstart', (e) => {
+    const card = e.target.closest('.task-card');
+    if (!card) return;
+    draggedId = card.getAttribute('data-id');
+    card.classList.add('dragging');
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggedId);
+    }
+  });
+
+  containerEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const targetCard = e.target.closest('.task-card');
+    containerEl.querySelectorAll('.task-card').forEach(c => c.classList.remove('drag-over'));
+    if (targetCard && targetCard.getAttribute('data-id') !== draggedId) {
+      targetCard.classList.add('drag-over');
+    }
+  });
+
+  containerEl.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const targetCard = e.target.closest('.task-card');
+    containerEl.querySelectorAll('.task-card').forEach(c => c.classList.remove('drag-over', 'dragging'));
+    if (!targetCard || !draggedId) return;
+    const targetId = targetCard.getAttribute('data-id');
+    if (draggedId !== targetId) {
+      onReorderIds(draggedId, targetId);
+    }
+    draggedId = null;
+  });
+
+  containerEl.addEventListener('dragend', () => {
+    containerEl.querySelectorAll('.task-card').forEach(c => c.classList.remove('drag-over', 'dragging'));
+    draggedId = null;
+  });
+}
+// ============================================================================
+// MODULE 5: js/ui.js — Debounced Search, <mark> Highlighting & DOM Renderer
+// Project: JavaScript Task Management Application | Intern: Muhammad Hasan Sajid (SEP26-FE21-44)
+// ============================================================================
+
+function debounce(fn, delay = 250) {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
+
+function escapeHTML(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function highlightMatches(text = '', query = '') {
+  const safeText = escapeHTML(text);
+  const cleanQ = (query || '').trim();
+  if (!cleanQ) return safeText;
+  const escapedRegex = cleanQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escapedRegex})`, 'gi');
+  return safeText.replace(regex, '<mark class="search-highlight">$1</mark>');
+}
+
+function renderTaskList(containerEl, tasks, query) {
+  if (!tasks.length) {
+    containerEl.innerHTML = `
+      <div class="empty-state">
+        <h3>No Matching Tasks Found</h3>
+        <p>Try clearing the search box (press <code>Esc</code>) or resetting the URL filters.</p>
+      </div>
+    `;
+    return;
+  }
+
+  containerEl.innerHTML = tasks.map(t => {
+    const titleHtml = highlightMatches(t.title, query);
+    const descHtml = highlightMatches(t.description, query);
+    const tagsHtml = (t.tags || []).map(tag => `<span class="tag">#${highlightMatches(tag, query)}</span>`).join('');
+    const isDone = t.status === 'completed';
+
+    return `
+      <article class="task-card ${isDone ? 'task-card--done' : ''}" draggable="true" data-id="${t.id}">
+        <div class="task-card__drag" title="Drag to reorder (HTML5 DnD)">⋮⋮</div>
+        <input type="checkbox" class="task-card__check" data-action="toggle" data-id="${t.id}" ${isDone ? 'checked' : ''}>
+        <div class="task-card__body">
+          <div class="task-card__top">
+            <span class="task-id">${t.id}</span>
+            <h3 class="task-title">${titleHtml}</h3>
+            <span class="badge badge--priority-${t.priority}">${t.priority.toUpperCase()}</span>
+            <span class="badge badge--status-${t.status}">${t.status}</span>
+          </div>
+          <p class="task-desc">${descHtml}</p>
+          <div class="task-meta">
+            <div class="task-tags">${tagsHtml}</div>
+            <span>Due: <strong>${t.dueDate}</strong></span>
+          </div>
+        </div>
+        <div class="task-card__actions">
+          <button type="button" class="btn-icon" data-action="edit" data-id="${t.id}">Edit</button>
+          <button type="button" class="btn-icon btn-icon--danger" data-action="delete" data-id="${t.id}">Delete</button>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+// ============================================================================
+// MODULE 6: js/app.js — Main Application Controller, CRUD & Keyboard Shortcuts
+// Project: JavaScript Task Management Application | Intern: Muhammad Hasan Sajid (SEP26-FE21-44)
+// ============================================================================
+
+
+const loaded = loadTasksFromStorage();
+const appState = {
+  tasks: loaded.tasks,
+  filters: readFiltersFromURL(),
+  editingId: null
+};
+
+const els = {
+  form: document.getElementById('task-form'),
+  titleInput: document.getElementById('task-title'),
+  descInput: document.getElementById('task-desc'),
+  priorityInput: document.getElementById('task-priority'),
+  statusInput: document.getElementById('task-status'),
+  dueInput: document.getElementById('task-due'),
+  submitBtn: document.getElementById('task-submit-btn'),
+  searchInput: document.getElementById('search-input'),
+  filterStatus: document.getElementById('filter-status'),
+  filterPriority: document.getElementById('filter-priority'),
+  sortBy: document.getElementById('sort-by'),
+  undoBtn: document.getElementById('undo-btn'),
+  redoBtn: document.getElementById('redo-btn'),
+  migrateBtn: document.getElementById('migrate-test-btn'),
+  taskList: document.getElementById('task-list'),
+  urlBadge: document.getElementById('url-query-badge'),
+  schemaBadge: document.getElementById('schema-log'),
+  statTotal: document.getElementById('stat-total'),
+  statDone: document.getElementById('stat-done'),
+  statPending: document.getElementById('stat-pending')
+};
+
+function refreshUI() {
+  saveTasksToStorage(appState.tasks);
+  const queryStr = syncFiltersToURL(appState.filters);
+  if (els.urlBadge) els.urlBadge.textContent = queryStr;
+  const visible = applyFiltersAndSort(appState.tasks, appState.filters);
+  renderTaskList(els.taskList, visible, appState.filters.q);
+
+  const doneCount = appState.tasks.filter(t => t.status === 'completed').length;
+  if (els.statTotal) els.statTotal.textContent = appState.tasks.length;
+  if (els.statDone) els.statDone.textContent = doneCount;
+  if (els.statPending) els.statPending.textContent = appState.tasks.length - doneCount;
+}
+
+const cmdManager = new CommandManager(({ undoCount, redoCount, maxHistory, lastActionLabel }) => {
+  if (els.undoBtn) {
+    els.undoBtn.disabled = undoCount === 0;
+    els.undoBtn.textContent = `↶ Undo (${undoCount}/${maxHistory})`;
+  }
+  if (els.redoBtn) {
+    els.redoBtn.disabled = redoCount === 0;
+    els.redoBtn.textContent = `↷ Redo (${redoCount})`;
+  }
+  if (lastActionLabel && els.schemaBadge) {
+    els.schemaBadge.textContent = `Schema v2 | Last Action: ${lastActionLabel}`;
+  }
+});
+
+function mutateWithCommand(label, nextTasks) {
+  const cmd = new TaskMutationCommand(label, appState, nextTasks, refreshUI);
+  cmdManager.executeCommand(cmd);
+}
+
+function initApp() {
+  if (!els.form) return;
+  if (els.schemaBadge) els.schemaBadge.textContent = loaded.migrationLog;
+
+  els.form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = els.titleInput.value.trim();
+    if (!title) return;
+
+    if (appState.editingId) {
+      const next = appState.tasks.map(t => t.id === appState.editingId ? {
+        ...t,
+        title,
+        description: els.descInput.value.trim() || t.description,
+        priority: els.priorityInput.value,
+        status: els.statusInput.value,
+        dueDate: els.dueInput.value || t.dueDate
+      } : t);
+      mutateWithCommand(`Update ${appState.editingId}`, next);
+      appState.editingId = null;
+      els.submitBtn.textContent = '+ Add Task (Alt+N)';
+    } else {
+      const newTask = {
+        id: `TSK-${100 + appState.tasks.length + 1}`,
+        title,
+        description: els.descInput.value.trim() || 'Created via Modular CRUD form.',
+        priority: els.priorityInput.value,
+        status: els.statusInput.value,
+        dueDate: els.dueInput.value || '2026-10-30',
+        order: appState.tasks.length,
+        tags: ['crud', els.priorityInput.value],
+        createdAt: new Date().toISOString()
+      };
+      mutateWithCommand(`Create ${newTask.id}`, [...appState.tasks, newTask]);
+    }
+    els.form.reset();
+  });
+
+  els.taskList.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-id');
+    const action = btn.getAttribute('data-action');
+
+    if (action === 'toggle') {
+      const next = appState.tasks.map(t => t.id === id ? {
+        ...t,
+        status: t.status === 'completed' ? 'todo' : 'completed'
+      } : t);
+      mutateWithCommand(`Toggle ${id}`, next);
+    } else if (action === 'delete') {
+      const next = appState.tasks.filter(t => t.id !== id);
+      mutateWithCommand(`Delete ${id}`, next);
+    } else if (action === 'edit') {
+      const target = appState.tasks.find(t => t.id === id);
+      if (target) {
+        appState.editingId = target.id;
+        els.titleInput.value = target.title;
+        els.descInput.value = target.description;
+        els.priorityInput.value = target.priority;
+        els.statusInput.value = target.status;
+        els.dueInput.value = target.dueDate;
+        els.submitBtn.textContent = `Save ${target.id}`;
+        els.titleInput.focus();
+      }
+    }
+  });
+
+  bindDragAndDrop(els.taskList, (draggedId, targetId) => {
+    const copy = [...appState.tasks];
+    const fromIdx = copy.findIndex(t => t.id === draggedId);
+    const toIdx = copy.findIndex(t => t.id === targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = copy.splice(fromIdx, 1);
+    copy.splice(toIdx, 0, moved);
+    const reindexed = copy.map((t, idx) => ({ ...t, order: idx }));
+    mutateWithCommand(`Reorder ${draggedId} -> ${targetId}`, reindexed);
+  });
+
+  const handleDebouncedSearch = debounce((val) => {
+    appState.filters.q = val;
+    refreshUI();
+  }, 250);
+
+  els.searchInput.addEventListener('input', (e) => handleDebouncedSearch(e.target.value));
+  els.filterStatus.addEventListener('change', (e) => { appState.filters.status = e.target.value; refreshUI(); });
+  els.filterPriority.addEventListener('change', (e) => { appState.filters.priority = e.target.value; refreshUI(); });
+  els.sortBy.addEventListener('change', (e) => { appState.filters.sort = e.target.value; refreshUI(); });
+
+  els.undoBtn.addEventListener('click', () => cmdManager.undo());
+  els.redoBtn.addEventListener('click', () => cmdManager.redo());
+
+  if (els.migrateBtn) {
+    els.migrateBtn.addEventListener('click', () => {
+      const legacyV1 = [
+        ...appState.tasks,
+        { text: 'Legacy v1 Task Auto-Migrated to Schema v2', done: false }
+      ];
+      const upgraded = migrateSchemaV1ToV2(legacyV1);
+      mutateWithCommand('Schema Migration v1->v2', upgraded.tasks);
+    });
+  }
+
+  // Global Keyboard Shortcuts
+  window.addEventListener('keydown', (e) => {
+    const inField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      cmdManager.undo();
+    } else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+      e.preventDefault();
+      cmdManager.redo();
+    } else if ((e.altKey && e.key.toLowerCase() === 'n') || (!inField && e.key.toLowerCase() === 'n')) {
+      e.preventDefault();
+      els.titleInput.focus();
+    } else if (!inField && e.key === '/') {
+      e.preventDefault();
+      els.searchInput.focus();
+    } else if (e.key === 'Escape') {
+      els.searchInput.value = '';
+      appState.filters.q = '';
+      appState.editingId = null;
+      els.submitBtn.textContent = '+ Add Task (Alt+N)';
+      refreshUI();
+    }
+  });
+
+  refreshUI();
+}
+
+initApp();
+          })();
+        }
+      }, 120);
+    });
+  </script>
+</body>
+
+</html>
